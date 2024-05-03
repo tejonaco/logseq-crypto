@@ -22,7 +22,6 @@ async function main (): Promise<void> {
 
   //render
   logseq.App.onMacroRendererSlotted( ({slot, payload}) => {
-    console.log(slot)
     let [template, iv] = payload.arguments
     if (template != RENDER_NAME){
       return

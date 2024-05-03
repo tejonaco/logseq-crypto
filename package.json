@@ -3,8 +3,8 @@
   "version": "0.1",
   "description": "Simple encryption for logseq pages",
   "scripts": {
-    "dev": "parcel ./index.html --public-url ./",
-    "build": "parcel build index.html --public-url ./"
+    "dev": "parcel src/index.html --public-url ./",
+    "build": "parcel build src/index.html --public-url ./"
   },
   "keywords": [],
   "author": "tejonaco",
@@ -20,8 +20,7 @@
   "logseq": {
     "title": "Logseq Crypto",
     "id": "logseq-crypto",
-    "main": "dist/index.html",
-    "icon": "assets/icon.png"
+    "main": "dist/index.html"
   },
   "eslintConfig": {
     "parserOptions": {

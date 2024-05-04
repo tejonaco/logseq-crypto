@@ -27,7 +27,8 @@ async function main (): Promise<void> {
 
     switch (iv) {
       case UNENCRYPTED_IV:
-        return ui.encryptMenu(slot)
+        ui.template.slotId = slot
+        return ui.updateTemplate()
     }
   }
   )

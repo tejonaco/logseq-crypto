@@ -14,8 +14,15 @@
     "ts-standard": "^12.0.2"
   },
   "devDependencies": {
+    "buffer": "^5.5.0||^6.0.0",
+    "crypto-browserify": "^3.12.0",
+    "events": "^3.1.0",
     "parcel": "^2.12.0",
-    "typescript": "^5.4.5"
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "string_decoder": "^1.3.0",
+    "typescript": "^5.4.5",
+    "vm-browserify": "^1.1.2"
   },
   "logseq": {
     "title": "Logseq Crypto",
@@ -24,7 +31,8 @@
   },
   "eslintConfig": {
     "parserOptions": {
-      "project": "./tsconfig.json"
+      "project": "./tsconfig.json",
+      "@typescript-eslint/strict-boolean-expressions": "false"
     },
     "extends": [
       "./node_modules/ts-standard/eslintrc.json"

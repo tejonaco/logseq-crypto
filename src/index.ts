@@ -1,10 +1,10 @@
 import '@logseq/libs'
 import * as ui from './UI'
 
-const UNENCRYPTED_IV = '<unencrypted>'
-const RENDER_NAME = 'crypto-menu'
+export const UNENCRYPTED_IV = '<unencrypted>'
+export const RENDER_NAME = 'crypto-menu'
 
-function renderTemplate (iv: string = ''): string {
+export function renderTemplate (iv: string = UNENCRYPTED_IV): string {
   return `{{renderer ${RENDER_NAME},${iv}}}`
 }
 
@@ -22,14 +22,11 @@ async function main (): Promise<void> {
   logseq.App.onMacroRendererSlotted(({ slot, payload }) => {
     const [template, iv] = payload.arguments
     if (template !== RENDER_NAME) {
+      console.log('EXIT')
       return
     }
 
-    switch (iv) {
-      case UNENCRYPTED_IV:
-        ui.template.slotId = slot
-        return ui.updateTemplate()
-    }
+    return ui.updateTemplate(slot, iv)
   }
   )
 }

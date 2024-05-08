@@ -27,12 +27,12 @@ export const encrypt = (text: string, password: string): AESContent => {
   }
 }
 
-export const decrypt = (hash: AESContent, password: string): string | undefined => {
+export const decrypt = (encryptedData: AESContent, password: string): string => {
   const md5 = crypto.createHash('md5')
   md5.update(password)
-  const decipher = crypto.createDecipheriv(ALGORITHM, md5.digest('hex'), Buffer.from(hash.iv, 'hex'))
+  const decipher = crypto.createDecipheriv(ALGORITHM, md5.digest('hex'), Buffer.from(encryptedData.iv, 'hex'))
 
-  const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()])
+  const decrpyted = Buffer.concat([decipher.update(Buffer.from(encryptedData.content, 'hex')), decipher.final()])
 
   return decrpyted.toString()
 }

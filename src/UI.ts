@@ -18,7 +18,7 @@ logseq.provideModel({
 
     const hash = crypto.secureHash(input.value)
     const pageBlocks = await logseq.Editor.getCurrentPageBlocksTree()
-    const {iv, content:encryptedContent} = crypto.encrypt(JSON.stringify(simplifyBlockTree(pageBlocks)), input.value)
+    const { iv, content: encryptedContent } = crypto.encrypt(JSON.stringify(simplifyBlockTree(pageBlocks)), input.value)
 
     await storage.save(page.id,
       {
@@ -28,6 +28,24 @@ logseq.provideModel({
         data: encryptedContent
       }
     )
+    await showEncryptIcon(headerSlot)
+  },
+  async decrypt () {
+    const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
+    const page = await logseq.Editor.getCurrentPage()
+    if (page === null) return
+
+    const saved = await storage.get(page.id)
+    if (saved === undefined) return
+
+    const hash = crypto.secureHash(input.value)
+    if (saved.hash != hash) {
+      console.log('Passwords don\'t match')
+      return
+    }
+    const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, input.value)
+
+    console.log(JSON.parse(decrpytedData))
   },
 
   showEncryptMenu (event: TransformableEvent) {
@@ -40,7 +58,19 @@ logseq.provideModel({
       <button data-on-click=cancel>❌</button>
       `
     })
-  }
+  },
+  showDecryptMenu (event: TransformableEvent) {
+    logseq.provideUI({
+      key: 'crypto-menu',
+      slot: headerSlot,
+      template: `
+      <input id=crypto-input-password type=text placeholder=Password />
+      <button data-on-click=decrypt>🔓</button>
+      <button data-on-click=cancel>❌</button>
+      `
+    })
+}
+
 })
 
 async function encryptIconTemplate (): Promise<string> {
@@ -52,7 +82,7 @@ async function encryptIconTemplate (): Promise<string> {
   if (encryptData === undefined || !encryptData.encrypted) {
     return '<button data-on-click=showEncryptMenu>🔒</button>' // event is automatically passed as argument
   } else {
-    return '<button>🔓</button>'
+    return '<button data-on-click=showDecryptMenu>🔓</button>'
   }
 }
 

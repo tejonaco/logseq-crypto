@@ -1,11 +1,27 @@
 import '@logseq/libs'
-import { IBatchBlock, ILSPluginUser, PageEntity } from '@logseq/libs/dist/LSPlugin'
+import { ILSPluginUser, PageEntity } from '@logseq/libs/dist/LSPlugin'
 import * as storage from './storage'
 import { TransformableEvent } from '..'
 import * as crypto from './crypto'
 import { clearPage, simplifyBlockTree } from './utils'
 
 let headerSlot = ''
+
+const icons = {
+  lock: '',
+  unlock: '',
+  see: '',
+  hide: '',
+  close: ''
+
+}
+const buttonStyle = 'style="font-size: 1.3em; margin-left: 4px"'
+
+const inputField = (): string => {
+  return `<input id=crypto-input-password type=text placeholder=Password
+            style="height: 1.5em; border-radius: 6px; padding-left: 10px;
+            font-family: system-ui font-size: 1.1em; font-weight: 500;" />`
+}
 
 logseq.provideModel({
   async cancel () {
@@ -58,9 +74,11 @@ logseq.provideModel({
       key: 'crypto-menu',
       slot: headerSlot,
       template: `
-      <input id=crypto-input-password type=text placeholder=Password />
-      <button data-on-click=encrypt>🔒</button>
-      <button data-on-click=cancel>❌</button>
+      <div style="display:flex; align-items: center;">
+        ${inputField()}
+        <button ${buttonStyle} data-on-click=encrypt>${icons.lock}</button>
+        <button ${buttonStyle} data-on-click=cancel>${icons.close}</button>
+      </div>
       `
     })
   },
@@ -69,9 +87,11 @@ logseq.provideModel({
       key: 'crypto-menu',
       slot: headerSlot,
       template: `
-      <input id=crypto-input-password type=text placeholder=Password />
-      <button data-on-click=decrypt>🔓</button>
-      <button data-on-click=cancel>❌</button>
+      <div style="display:flex; align-items: center;">
+      ${inputField()}
+        <button ${buttonStyle} data-on-click=decrypt>${icons.unlock}</button>
+        <button ${buttonStyle} data-on-click=cancel>${icons.close}</button>
+      </div>
       `
     })
   }
@@ -83,9 +103,9 @@ async function encryptIconTemplate (): Promise<string> {
 
   const encryptData = await storage.get(page)
   if (encryptData === undefined) {
-    return '<button data-on-click=showEncryptMenu>🔒</button>' // event is automatically passed as argument
+    return `<button ${buttonStyle} data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
   } else {
-    return '<button data-on-click=showDecryptMenu>🔓</button>'
+    return `<button ${buttonStyle} data-on-click=showDecryptMenu>${icons.unlock}</button>`
   }
 }
 

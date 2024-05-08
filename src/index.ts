@@ -1,10 +1,7 @@
 import '@logseq/libs'
 import * as ui from './UI'
-import * as storage from './storage'
 
-async function main (): Promise<void> {
-  // slash
-
+function main (): void {
   logseq.App.onPageHeadActionsSlotted(e => ui.showEncryptIcon(e.slot) as unknown)
 }
 

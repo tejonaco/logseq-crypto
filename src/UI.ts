@@ -1,9 +1,9 @@
 import '@logseq/libs'
-import { ILSPluginUser, PageEntity } from '@logseq/libs/dist/LSPlugin'
+import { IBatchBlock, ILSPluginUser, PageEntity } from '@logseq/libs/dist/LSPlugin'
 import * as storage from './storage'
 import { TransformableEvent } from '..'
 import * as crypto from './crypto'
-import { simplifyBlockTree } from './utils'
+import { clearPage, simplifyBlockTree } from './utils'
 
 let headerSlot = ''
 
@@ -11,41 +11,46 @@ logseq.provideModel({
   async cancel () {
     await showEncryptIcon(headerSlot)
   },
-  async encrypt (e) {
+  async encrypt () {
     const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-    const page = await logseq.Editor.getCurrentPage()
+    const page = await logseq.Editor.getCurrentPage() as PageEntity
     if (page === null) return
 
     const hash = crypto.secureHash(input.value)
     const pageBlocks = await logseq.Editor.getCurrentPageBlocksTree()
     const { iv, content: encryptedContent } = crypto.encrypt(JSON.stringify(simplifyBlockTree(pageBlocks)), input.value)
 
-    await storage.save(page.id,
+    await storage.save(page,
       {
-        encrypted: true,
         hash,
         iv,
         data: encryptedContent
       }
     )
+    await clearPage(page)
     await showEncryptIcon(headerSlot)
+    await logseq.UI.showMsg('Content encrypted and saved on ' + storage.filePath(page), 'success', { timeout: 3000 })
   },
   async decrypt () {
     const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-    const page = await logseq.Editor.getCurrentPage()
-    if (page === null) return
+    const page = await logseq.Editor.getCurrentPage() as PageEntity
 
-    const saved = await storage.get(page.id)
+    const saved = await storage.get(page)
     if (saved === undefined) return
 
     const hash = crypto.secureHash(input.value)
-    if (saved.hash != hash) {
-      console.log('Passwords don\'t match')
+    if (saved.hash !== hash) {
+      await logseq.UI.showMsg('Passwords don\'t match', 'error')
       return
     }
     const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, input.value)
 
-    console.log(JSON.parse(decrpytedData))
+    // const newBlock = logseq.Editor.appendBlockInPage(page, '')
+    await logseq.Editor.insertBatchBlock(page.uuid, JSON.parse(decrpytedData))
+    await storage.remove(page)
+
+    await showEncryptIcon(headerSlot)
+    await logseq.UI.showMsg('Content decrypted', 'success')
   },
 
   showEncryptMenu (event: TransformableEvent) {
@@ -69,17 +74,15 @@ logseq.provideModel({
       <button data-on-click=cancel>❌</button>
       `
     })
-}
+  }
 
 })
 
 async function encryptIconTemplate (): Promise<string> {
-  const page = await logseq.Editor.getCurrentPage()
-  if (page === undefined) {
-    return ''
-  }
-  const encryptData = await storage.get(page?.id)
-  if (encryptData === undefined || !encryptData.encrypted) {
+  const page = await logseq.Editor.getCurrentPage() as PageEntity
+
+  const encryptData = await storage.get(page)
+  if (encryptData === undefined) {
     return '<button data-on-click=showEncryptMenu>🔒</button>' // event is automatically passed as argument
   } else {
     return '<button data-on-click=showDecryptMenu>🔓</button>'

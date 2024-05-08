@@ -5,13 +5,7 @@ export interface AESContent {
   content: string
 }
 
-export interface SimpleBlockTree {
-  children?: SimpleBlockTree[]
-  content: string
-}
-
 export interface CryptoData {
-  encrypted: boolean
   hash: string
   iv: string
   data: string

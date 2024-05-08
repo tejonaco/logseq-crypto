@@ -20,3 +20,11 @@ export interface CryptoData {
 export interface CryptoDataDict {
   [Key: string]: CryptoData
 }
+
+export interface TransformableEvent {
+  type: string
+  value: string
+  id: string
+  className: string
+  dataset: Object
+}

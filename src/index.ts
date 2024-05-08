@@ -1,5 +1,6 @@
 import '@logseq/libs'
 import * as ui from './UI'
+import * as storage from './storage'
 
 export const UNENCRYPTED_IV = '<unencrypted>'
 export const RENDER_NAME = 'crypto-menu'
@@ -12,23 +13,17 @@ async function main (): Promise<void> {
   // slash
   logseq.Editor.registerSlashCommand(
     'Crypto Menu', async () => {
-      await logseq.Editor.insertAtEditingCursor(
-        renderTemplate(UNENCRYPTED_IV)
+      const page = await logseq.Editor.getCurrentPage()
+
+      await storage.save(page?.name as string,
+        {
+          encrypted: false,
+          hash: 'aa',
+          iv: 'aa',
+          data: 'ab'
+        }
       )
-    }
-  )
-
-  // render
-  logseq.App.onMacroRendererSlotted(({ slot, payload }) => {
-    const [template, iv] = payload.arguments
-    if (template !== RENDER_NAME) {
-      console.log('EXIT')
-      return
-    }
-
-    return ui.updateTemplate(slot, iv)
-  }
-  )
+    })
 }
 
 // bootstrap

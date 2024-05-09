@@ -23,6 +23,19 @@ const inputField = (passwordHidden: boolean, password: string | null): string =>
             font-family: system-ui font-size: 1.1em; padding;" />`
 }
 
+const encryptButton = `
+        <button ${buttonStyle} id="crypto-button-encrypt"
+          title='Hold one second to encrypt page'>
+          ${icons.lock}
+        </button>`
+
+const decryptButton = `
+        <button ${buttonStyle} id="crypto-button-decrypt"
+          data-on-click=decrypt
+          title='Push to decrypt page'>
+          ${icons.unlock}
+        </button>`
+
 async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden = true, password: string | null = null): Promise<void> {
   /*
   password: render with last password as input value
@@ -40,18 +53,16 @@ async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden =
         ${passwordHidden ? icons.watch : icons.hide}
       </button>
       ${inputField(passwordHidden, password)}
-      <button ${buttonStyle} data-on-click=${action}
-        title=${action === 'encrypt' ? 'Encrypt content' : 'Decrypt content'}>
-        ${action === 'encrypt' ? icons.lock : icons.unlock}
-      </button>
+      ${(action == 'encrypt') ? encryptButton : decryptButton}
       <button title="Close menu" ${buttonStyle} data-on-click=cancel>${icons.close}</button>
     </div>
     `
   })
   const input = await waitForElm('#crypto-input-password') as HTMLInputElement
   input.focus()
+  await encryptButtonListener()
 }
-// 
+//
 /* End Helpers */
 
 /* Callback Functions */
@@ -64,26 +75,6 @@ logseq.provideModel({
   async cancel () {
     await showEncryptIcon(uiData.headerSlot)
   },
-  async encrypt () {
-    const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-    const page = await logseq.Editor.getCurrentPage() as PageEntity
-    if (page === null) return
-
-    const hash = crypto.secureHash(input.value)
-    const pageBlocks = await logseq.Editor.getCurrentPageBlocksTree()
-    const { iv, content: encryptedContent } = crypto.encrypt(JSON.stringify(simplifyBlockTree(pageBlocks)), input.value)
-
-    await storage.save(page,
-      {
-        hash,
-        iv,
-        data: encryptedContent
-      }
-    )
-    await clearPage(page)
-    await showEncryptIcon(uiData.headerSlot)
-    await logseq.UI.showMsg('Content encrypted and saved on ' + storage.filePath(page), 'success', { timeout: 3000 })
-  },
 
   async decrypt () {
     const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
@@ -94,7 +85,7 @@ logseq.provideModel({
 
     const hash = crypto.secureHash(input.value)
     if (saved.hash !== hash) {
-      await logseq.UI.showMsg('Passwords don\'t match', 'error')
+      await logseq.UI.showMsg('Password is incorrect', 'error')
       return
     }
     const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, input.value)
@@ -136,5 +127,44 @@ export async function showEncryptIcon (slot: string): Promise<ILSPluginUser> {
     key: 'crypto-menu',
     slot,
     template: await encryptIconTemplate()
+  })
+}
+
+async function encryptPage (): Promise<void> {
+  const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
+  const page = await logseq.Editor.getCurrentPage() as PageEntity
+  if (page === null) return
+
+  const hash = crypto.secureHash(input.value)
+  const pageBlocks = await logseq.Editor.getCurrentPageBlocksTree()
+  const { iv, content: encryptedContent } = crypto.encrypt(JSON.stringify(simplifyBlockTree(pageBlocks)), input.value)
+
+  await storage.save(page,
+    {
+      hash,
+      iv,
+      data: encryptedContent
+    }
+  )
+  await clearPage(page)
+  await showEncryptIcon(uiData.headerSlot)
+  await logseq.UI.showMsg('Content encrypted and saved on ' + storage.filePath(page), 'success', { timeout: 3000 })
+}
+
+async function encryptButtonListener (): Promise<void> {
+  // trigger encryption only when keeping button pressed for a second
+  const button = await waitForElm('#crypto-button-encrypt')
+  let pressTimeout: number
+
+  button.addEventListener('mousedown', e => {
+    e.stopImmediatePropagation() // prevent repetition if event is registered multiple times
+    pressTimeout = setTimeout(async () => {
+      await encryptPage()
+    }, 1000)
+  })
+
+  button.addEventListener('mouseup', e => {
+    e.stopImmediatePropagation()
+    clearTimeout(pressTimeout)
   })
 }

@@ -17,12 +17,32 @@ const icons = {
 }
 const buttonStyle = 'style="font-size: 1.3em; margin-left: 4px"'
 
+/* Helpers */
 const inputField = (): string => {
   return `<input id=crypto-input-password type=text placeholder=Password
             style="height: 1.5em; border-radius: 6px; padding-left: 10px;
             font-family: system-ui font-size: 1.1em; font-weight: 500;" />`
 }
 
+function showPasswordMenu (action: 'encrypt' | 'decrypt'): void {
+  logseq.provideUI({
+    key: 'crypto-menu',
+    slot: headerSlot,
+    template: `
+    <div style="display:flex; align-items: center;">
+      ${inputField()}
+      <button ${buttonStyle} data-on-click=${action}
+        title=${action === 'encrypt' ? 'Encrypt content': 'Decrypt content'}>${action === 'encrypt' ? icons.lock: icons.unlock}</button>
+      <button title="Close menu" ${buttonStyle} data-on-click=cancel>${icons.close}</button>
+    </div>
+    `
+  })
+}
+
+/* End Helpers */
+
+
+/* Callback Functions */
 logseq.provideModel({
   async cancel () {
     await showEncryptIcon(headerSlot)
@@ -70,42 +90,24 @@ logseq.provideModel({
   },
 
   showEncryptMenu (event: TransformableEvent) {
-    logseq.provideUI({
-      key: 'crypto-menu',
-      slot: headerSlot,
-      template: `
-      <div style="display:flex; align-items: center;">
-        ${inputField()}
-        <button ${buttonStyle} data-on-click=encrypt>${icons.lock}</button>
-        <button ${buttonStyle} data-on-click=cancel>${icons.close}</button>
-      </div>
-      `
-    })
+    showPasswordMenu("encrypt")
   },
   showDecryptMenu (event: TransformableEvent) {
-    logseq.provideUI({
-      key: 'crypto-menu',
-      slot: headerSlot,
-      template: `
-      <div style="display:flex; align-items: center;">
-      ${inputField()}
-        <button ${buttonStyle} data-on-click=decrypt>${icons.unlock}</button>
-        <button ${buttonStyle} data-on-click=cancel>${icons.close}</button>
-      </div>
-      `
-    })
+    showPasswordMenu("decrypt")
   }
 
 })
+/* End Callback Functions */
 
+/* Template render */
 async function encryptIconTemplate (): Promise<string> {
   const page = await logseq.Editor.getCurrentPage() as PageEntity
 
   const encryptData = await storage.get(page)
   if (encryptData === undefined) {
-    return `<button ${buttonStyle} data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
+    return `<button ${buttonStyle} title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
   } else {
-    return `<button ${buttonStyle} data-on-click=showDecryptMenu>${icons.unlock}</button>`
+    return `<button ${buttonStyle} title="Open cypto menu" data-on-click=showDecryptMenu>${icons.unlock}</button>`
   }
 }
 

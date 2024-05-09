@@ -1,8 +1,16 @@
 import '@logseq/libs'
 import * as ui from './UI'
 
-function main (): void {
+async function loadCss (): Promise<void> {
+  const cssFile = '../assets/index.css'
+  const response = await fetch(cssFile)
+  const style = await response.text()
+  logseq.provideStyle(style)
+}
+
+async function main (): Promise<void> {
   logseq.App.onPageHeadActionsSlotted(e => ui.showEncryptIcon(e.slot) as unknown)
+  await loadCss()
 }
 
 // bootstrap

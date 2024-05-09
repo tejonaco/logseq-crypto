@@ -4,6 +4,7 @@ import * as storage from './storage'
 import { TransformableEvent } from '..'
 import * as crypto from './crypto'
 import { clearPage, simplifyBlockTree } from './utils'
+import * as icons from './icons'
 
 const uiData = {
   headerSlot: '',
@@ -11,13 +12,6 @@ const uiData = {
   actionMenu: 'encrypt' as 'encrypt' | 'decrypt'
 }
 
-const icons = {
-  lock: '',
-  unlock: '',
-  watch: '',
-  hide: '',
-  close: ''
-}
 
 const buttonStyle = 'style="font-size: 1.3em; margin-left: 4px"'
 

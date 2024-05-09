@@ -3,7 +3,7 @@ import { ILSPluginUser, PageEntity } from '@logseq/libs/dist/LSPlugin'
 import * as storage from './storage'
 import { TransformableEvent } from '..'
 import * as crypto from './crypto'
-import { clearPage, simplifyBlockTree } from './utils'
+import { clearPage, simplifyBlockTree, waitForElm } from './utils'
 import * as icons from './icons'
 
 const uiData = {
@@ -11,7 +11,6 @@ const uiData = {
   passwordHidden: true,
   actionMenu: 'encrypt' as 'encrypt' | 'decrypt'
 }
-
 
 const buttonStyle = 'style="font-size: 1.3em; margin-left: 4px"'
 
@@ -24,7 +23,7 @@ const inputField = (passwordHidden: boolean, password: string | null): string =>
             font-family: system-ui font-size: 1.1em; padding;" />`
 }
 
-function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden = true, password: string | null = null): void {
+async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden = true, password: string | null = null): Promise<void> {
   /*
   password: render with last password as input value
   */
@@ -49,15 +48,17 @@ function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden = true,
     </div>
     `
   })
+  const input = await waitForElm('#crypto-input-password') as HTMLInputElement
+  input.focus()
 }
-
+// 
 /* End Helpers */
 
 /* Callback Functions */
 logseq.provideModel({
-  changePasswordVisibility () {
+  async changePasswordVisibility () {
     const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-    showPasswordMenu(uiData.actionMenu, !uiData.passwordHidden, input.value)
+    await showPasswordMenu(uiData.actionMenu, !uiData.passwordHidden, input.value)
   },
 
   async cancel () {
@@ -106,12 +107,12 @@ logseq.provideModel({
     await logseq.UI.showMsg('Content decrypted', 'success')
   },
 
-  showEncryptMenu (event: TransformableEvent) {
-    showPasswordMenu('encrypt')
+  async showEncryptMenu (event: TransformableEvent) {
+    await showPasswordMenu('encrypt')
   },
 
-  showDecryptMenu (event: TransformableEvent) {
-    showPasswordMenu('decrypt')
+  async showDecryptMenu (event: TransformableEvent) {
+    await showPasswordMenu('decrypt')
   }
 
 })

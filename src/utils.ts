@@ -25,3 +25,28 @@ export async function clearPage (page: PageEntity): Promise<void> {
     await logseq.Editor.removeBlock(block.uuid)
   }
 }
+
+export async function waitForElm (selector: string): Promise<Element> {
+  /* https://stackoverflow.com/a/61511955 */
+
+  return await new Promise(resolve => {
+    const elm = parent.document.querySelector(selector)
+    if (elm !== null) {
+      return resolve(elm)
+    }
+
+    const observer = new MutationObserver(mutations => {
+      const elm = parent.document.querySelector(selector)
+      if (elm !== null) {
+        observer.disconnect()
+        return resolve(elm)
+      }
+    })
+
+    // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+    observer.observe(parent.document.body, {
+      childList: true,
+      subtree: true
+    })
+  })
+}

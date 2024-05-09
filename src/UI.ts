@@ -5,34 +5,52 @@ import { TransformableEvent } from '..'
 import * as crypto from './crypto'
 import { clearPage, simplifyBlockTree } from './utils'
 
-let headerSlot = ''
+const uiData = {
+  headerSlot: '',
+  passwordHidden: true,
+  actionMenu: 'encrypt' as 'encrypt' | 'decrypt'
+}
 
 const icons = {
   lock: '',
   unlock: '',
-  see: '',
+  watch: '',
   hide: '',
   close: ''
-
 }
+
 const buttonStyle = 'style="font-size: 1.3em; margin-left: 4px"'
 
 /* Helpers */
-const inputField = (): string => {
-  return `<input id=crypto-input-password type=text placeholder=Password
+const inputField = (passwordHidden: boolean, password: string | null): string => {
+  return `<input id=crypto-input-password placeholder=Password
+            type=${passwordHidden ? 'password' : 'text'}
+            ${(password === null) ? 'value="" ' : 'value="' + password + '" '}
             style="height: 1.5em; border-radius: 6px; padding-left: 10px;
-            font-family: system-ui font-size: 1.1em; font-weight: 500;" />`
+            font-family: system-ui font-size: 1.1em; padding;" />`
 }
 
-function showPasswordMenu (action: 'encrypt' | 'decrypt'): void {
+function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden = true, password: string | null = null): void {
+  /*
+  password: render with last password as input value
+  */
+  uiData.actionMenu = action
+  uiData.passwordHidden = passwordHidden
+
   logseq.provideUI({
     key: 'crypto-menu',
-    slot: headerSlot,
+    slot: uiData.headerSlot,
     template: `
     <div style="display:flex; align-items: center;">
-      ${inputField()}
+      <button title="${passwordHidden ? 'Show' : 'Hide'} password" style="font-size: 1.3em; margin-right: 4px"'
+        data-on-click=changePasswordVisibility>
+        ${passwordHidden ? icons.watch : icons.hide}
+      </button>
+      ${inputField(passwordHidden, password)}
       <button ${buttonStyle} data-on-click=${action}
-        title=${action === 'encrypt' ? 'Encrypt content': 'Decrypt content'}>${action === 'encrypt' ? icons.lock: icons.unlock}</button>
+        title=${action === 'encrypt' ? 'Encrypt content' : 'Decrypt content'}>
+        ${action === 'encrypt' ? icons.lock : icons.unlock}
+      </button>
       <button title="Close menu" ${buttonStyle} data-on-click=cancel>${icons.close}</button>
     </div>
     `
@@ -41,11 +59,15 @@ function showPasswordMenu (action: 'encrypt' | 'decrypt'): void {
 
 /* End Helpers */
 
-
 /* Callback Functions */
 logseq.provideModel({
+  changePasswordVisibility () {
+    const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
+    showPasswordMenu(uiData.actionMenu, !uiData.passwordHidden, input.value)
+  },
+
   async cancel () {
-    await showEncryptIcon(headerSlot)
+    await showEncryptIcon(uiData.headerSlot)
   },
   async encrypt () {
     const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
@@ -64,9 +86,10 @@ logseq.provideModel({
       }
     )
     await clearPage(page)
-    await showEncryptIcon(headerSlot)
+    await showEncryptIcon(uiData.headerSlot)
     await logseq.UI.showMsg('Content encrypted and saved on ' + storage.filePath(page), 'success', { timeout: 3000 })
   },
+
   async decrypt () {
     const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
     const page = await logseq.Editor.getCurrentPage() as PageEntity
@@ -85,15 +108,16 @@ logseq.provideModel({
     await logseq.Editor.insertBatchBlock(page.uuid, JSON.parse(decrpytedData))
     await storage.remove(page)
 
-    await showEncryptIcon(headerSlot)
+    await showEncryptIcon(uiData.headerSlot)
     await logseq.UI.showMsg('Content decrypted', 'success')
   },
 
   showEncryptMenu (event: TransformableEvent) {
-    showPasswordMenu("encrypt")
+    showPasswordMenu('encrypt')
   },
+
   showDecryptMenu (event: TransformableEvent) {
-    showPasswordMenu("decrypt")
+    showPasswordMenu('decrypt')
   }
 
 })
@@ -112,7 +136,7 @@ async function encryptIconTemplate (): Promise<string> {
 }
 
 export async function showEncryptIcon (slot: string): Promise<ILSPluginUser> {
-  headerSlot = slot
+  uiData.headerSlot = slot
   return logseq.provideUI({
     key: 'crypto-menu',
     slot,

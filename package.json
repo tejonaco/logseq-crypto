@@ -27,7 +27,8 @@
   "logseq": {
     "title": "Logseq Crypto",
     "id": "logseq-crypto",
-    "main": "dist/index.html"
+    "main": "dist/index.html",
+	  "icon": "assets/icon.png"
   },
   "eslintConfig": {
     "parserOptions": {

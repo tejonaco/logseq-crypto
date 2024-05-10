@@ -12,25 +12,21 @@ const uiData = {
   actionMenu: 'encrypt' as 'encrypt' | 'decrypt'
 }
 
-const buttonStyle = 'style="font-size: 1.3em; margin-left: 4px"'
-
 /* Helpers */
 const inputField = (passwordHidden: boolean, password: string | null): string => {
   return `<input id=crypto-input-password placeholder=Password
             type=${passwordHidden ? 'password' : 'text'}
-            ${(password === null) ? 'value="" ' : 'value="' + password + '" '}
-            style="height: 1.5em; border-radius: 6px; padding-left: 10px;
-            font-family: system-ui font-size: 1.1em; padding;" />`
+            ${(password === null) ? 'value="" ' : 'value="' + password + '" '}/>`
 }
 
 const encryptButton = `
-        <button ${buttonStyle} id="crypto-button-encrypt"
+        <button id="crypto-button-encrypt"
           title='Hold one second to encrypt page'>
           ${icons.lock}
         </button>`
 
 const decryptButton = `
-        <button ${buttonStyle} id="crypto-button-decrypt"
+        <button id="crypto-button-decrypt"
           data-on-click=decrypt
           title='Push to decrypt page'>
           ${icons.unlock}
@@ -48,13 +44,14 @@ async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden =
     slot: uiData.headerSlot,
     template: `
     <div style="display:flex; align-items: center;">
-      <button title="${passwordHidden ? 'Show' : 'Hide'} password" style="font-size: 1.3em; margin-right: 4px"'
+      <button title="${passwordHidden ? 'Show' : 'Hide'} password"
+        id=crypto-password-visibility
         data-on-click=changePasswordVisibility>
         ${passwordHidden ? icons.watch : icons.hide}
       </button>
       ${inputField(passwordHidden, password)}
-      ${(action == 'encrypt') ? encryptButton : decryptButton}
-      <button title="Close menu" ${buttonStyle} data-on-click=cancel>${icons.close}</button>
+      ${(action === 'encrypt') ? encryptButton : decryptButton}
+      <button id=crypto-close-menu title="Close menu" data-on-click=cancel>${icons.close}</button>
     </div>
     `
   })
@@ -115,9 +112,9 @@ async function encryptIconTemplate (): Promise<string> {
 
   const encryptData = await storage.get(page)
   if (encryptData === undefined) {
-    return `<button ${buttonStyle} title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
+    return `<button title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
   } else {
-    return `<button ${buttonStyle} title="Open cypto menu" data-on-click=showDecryptMenu>${icons.unlock}</button>`
+    return `<button title="Open cypto menu" data-on-click=showDecryptMenu>${icons.unlock}</button>`
   }
 }
 

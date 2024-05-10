@@ -1,0 +1,68 @@
+#crypto-password-visibility {
+    font-size: 1.3em;
+    margin-right: 4px;
+}
+
+#crypto-input-password {
+    background-color: var(--color-level-1);
+    border-color: var(--ls-border-color);
+    height: 1.5em;
+    border-radius: 8px;
+    padding-left: 10px;
+    font-family: var(--ls-font-family), sans-serif;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+#crypto-input-password:focus {
+    box-shadow: none;
+}
+
+#logseq-crypto--crypto-menu button {
+    font-size: 1.3em;
+    margin-left: 4px;
+    color: var(--ls-header-button-background);
+    padding: 2px;
+    border-radius: 8px;
+}
+
+#logseq-crypto--crypto-menu button:hover {
+    background-color: var(--ls-tertiary-background-color);
+}
+
+#crypto-close-menu:hover {
+    color: var(--color-red-800);
+}
+
+#crypto-button-encrypt {
+    z-index: 1;
+    overflow: hidden;
+    position: relative;
+
+&:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+}
+&:before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background-color: var(--lx-accent-12);
+    
+    transition: background-color, 1s;
+    z-index: -1;
+}
+&:active {
+    color: var(--lx-accent-02);
+    &:before {
+        height: 100%;
+    }
+}

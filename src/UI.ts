@@ -55,10 +55,10 @@ async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden =
     </div>
     `
   })
+  await encryptButtonListener()
   const input = await waitForElm('#crypto-input-password') as HTMLInputElement
   input.selectionStart = input.value.length
   input.focus()
-  await encryptButtonListener()
 }
 //
 /* End Helpers */
@@ -87,8 +87,6 @@ logseq.provideModel({
       return
     }
     const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, input.value)
-
-    // const newBlock = logseq.Editor.appendBlockInPage(page, '')
     await logseq.Editor.insertBatchBlock(page.uuid, JSON.parse(decrpytedData))
     await storage.remove(page)
 
@@ -110,7 +108,6 @@ logseq.provideModel({
 /* Template render */
 async function encryptIconTemplate (): Promise<string> {
   const page = await logseq.Editor.getCurrentPage() as PageEntity
-
   const encryptData = await storage.get(page)
   if (encryptData === undefined) {
     return `<button title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument

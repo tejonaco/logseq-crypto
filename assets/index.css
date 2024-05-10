@@ -1,17 +1,19 @@
+
 #crypto-password-visibility {
     font-size: 1.3em;
     margin-right: 4px;
 }
 
 #crypto-input-password {
-    background-color: var(--color-level-1);
-    border-color: var(--ls-border-color);
+    background-color: var(--ls-tertiary-background-color);
+    border-color: var(--lx-accent-05);
     height: 1.5em;
     border-radius: 8px;
-    padding-left: 10px;
+    padding-left: 10px; 
     font-family: var(--ls-font-family), sans-serif;
     padding-top: 2px;
     padding-bottom: 2px;
+    width: 200px;
 }
 
 #crypto-input-password:focus {
@@ -21,7 +23,8 @@
 #logseq-crypto--crypto-menu button {
     font-size: 1.3em;
     margin-left: 4px;
-    color: var(--ls-header-button-background);
+    /* color: var(--ls-header-button-background); */
+    color: var(--ls-title-text-color);
     padding: 2px;
     border-radius: 8px;
 }

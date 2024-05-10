@@ -56,6 +56,7 @@ async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden =
     `
   })
   const input = await waitForElm('#crypto-input-password') as HTMLInputElement
+  input.selectionStart = input.value.length
   input.focus()
   await encryptButtonListener()
 }

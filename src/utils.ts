@@ -30,11 +30,6 @@ export async function waitForElm (selector: string): Promise<Element> {
   /* https://stackoverflow.com/a/61511955 */
 
   return await new Promise(resolve => {
-    const elm = parent.document.querySelector(selector)
-    if (elm !== null) {
-      return resolve(elm)
-    }
-
     const observer = new MutationObserver(mutations => {
       const elm = parent.document.querySelector(selector)
       if (elm !== null) {

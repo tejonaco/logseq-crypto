@@ -97,7 +97,7 @@ logseq.provideModel({
     }
 
     await logseq.Editor.insertBatchBlock(tempBlock.uuid, JSON.parse(decrpytedData), {
-      keepUUID: false,
+      keepUUID: true,
       before: false,
       sibling: true
     })

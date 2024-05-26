@@ -87,7 +87,23 @@ logseq.provideModel({
       return
     }
     const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, input.value)
-    await logseq.Editor.insertBatchBlock(page.uuid, JSON.parse(decrpytedData))
+
+    const tempBlock = await logseq.Editor.appendBlockInPage(page.uuid, 'Decrypting page') // workaround for https://github.com/logseq/logseq/issues/10871
+
+    if (tempBlock == null) {
+      // This will probably never occur
+      console.error('Something went wrong inserting block in page')
+      return
+    }
+
+    await logseq.Editor.insertBatchBlock(tempBlock.uuid, JSON.parse(decrpytedData), {
+      keepUUID: false,
+      before: false,
+      sibling: true
+    })
+
+    await logseq.Editor.removeBlock(tempBlock.uuid)
+
     await storage.remove(page)
 
     await showEncryptIcon(uiData.headerSlot)

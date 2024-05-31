@@ -1,181 +1,161 @@
-import '@logseq/libs'
-import { ILSPluginUser, PageEntity } from '@logseq/libs/dist/LSPlugin'
+import { PageEntity } from '@logseq/libs/dist/LSPlugin'
+import * as icons from './icons'
 import * as storage from './storage'
 import { TransformableEvent } from '..'
-import * as crypto from './crypto'
-import { clearPage, simplifyBlockTree, waitForElm } from './utils'
-import * as icons from './icons'
+import { holdButtonListener, waitForElm } from './utils'
+import { encryptPage, decrypt } from './actions'
 
-const uiData = {
-  headerSlot: '',
-  passwordHidden: true,
-  actionMenu: 'encrypt' as 'encrypt' | 'decrypt'
-}
+const doc = parent.document
+let SLOT = '' // header slot, used by close
 
-/* Helpers */
-const inputField = (passwordHidden: boolean, password: string | null): string => {
-  return `<input id=crypto-input-password placeholder=Password
-            type=${passwordHidden ? 'password' : 'text'}
-            ${(password === null) ? 'value="" ' : 'value="' + password + '" '}/>`
-}
-
-const encryptButton = `
-        <button id="crypto-button-encrypt"
-          title='Hold one second to encrypt page'>
-          ${icons.lock}
-        </button>`
-
-const decryptButton = `
-        <button id="crypto-button-decrypt"
-          data-on-click=decrypt
-          title='Push to decrypt page'>
-          ${icons.unlock}
-        </button>`
-
-async function showPasswordMenu (action: 'encrypt' | 'decrypt', passwordHidden = true, password: string | null = null): Promise<void> {
-  /*
-  password: render with last password as input value
-  */
-  uiData.actionMenu = action
-  uiData.passwordHidden = passwordHidden
-
-  logseq.provideUI({
-    key: 'crypto-menu',
-    slot: uiData.headerSlot,
-    template: `
-    <div style="display:flex; align-items: center;">
-      <button title="${passwordHidden ? 'Show' : 'Hide'} password"
-        id=crypto-password-visibility
-        data-on-click=changePasswordVisibility>
-        ${passwordHidden ? icons.watch : icons.hide}
-      </button>
-      ${inputField(passwordHidden, password)}
-      ${(action === 'encrypt') ? encryptButton : decryptButton}
-      <button id=crypto-close-menu title="Close menu" data-on-click=cancel>${icons.close}</button>
-    </div>
-    `
-  })
-  await encryptButtonListener()
-  const input = await waitForElm('#crypto-input-password') as HTMLInputElement
-  input.selectionStart = input.value.length
-  input.focus()
-}
-//
-/* End Helpers */
-
-/* Callback Functions */
+// CALLBACKS
 logseq.provideModel({
-  async changePasswordVisibility () {
-    const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-    await showPasswordMenu(uiData.actionMenu, !uiData.passwordHidden, input.value)
+  showEncryptMenu (event: TransformableEvent) {
+    showMenu('encrypt')
   },
 
-  async cancel () {
-    await showEncryptIcon(uiData.headerSlot)
+  showDecryptMenu (event: TransformableEvent) {
+    showMenu('decrypt')
   },
 
-  async decrypt () {
-    const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-    const page = await logseq.Editor.getCurrentPage() as PageEntity
+  changeVisibility (event: TransformableEvent) {
+    const hidden = event.value === 'true'
 
-    const saved = await storage.get(page)
-    if (saved === undefined) return
+    render.visibilityButton(!hidden)
+    render.passwordField(!hidden)
+  },
 
-    const hash = crypto.secureHash(input.value)
-    if (saved.hash !== hash) {
-      await logseq.UI.showMsg('Password is incorrect', 'error')
-      return
+  cancel () {
+    showCryptoIcon(SLOT)
+  }
+})
+// END_CALLBACKS
+
+// RENDERS
+export const render = {
+  structure (slot: string): void {
+    logseq.provideUI({
+      key: 'crypto-menu',
+      slot,
+      template: `
+      <div style="display:flex; align-items: center;">
+        <div id=lc-visibility-placeholder></div>
+        <div id=lc-password-placeholder></div>
+        <div id=lc-button-placeholder></div>
+        <button id=lc-button-close title="Close menu" data-on-click=cancel >${icons.close}</button>
+      </div>
+      `
+    })
+  },
+
+  visibilityButton (passwordHidden = true): void {
+    logseq.provideUI({
+      key: 'visibility-icon', // key avoid stack on re-renders
+      slot: 'lc-visibility-placeholder',
+      template: `
+      <button id=lc-visibility data-on-click=changeVisibility value=${passwordHidden.toString()}>${passwordHidden ? icons.watch : icons.hide}</button>
+      `
+    })
+  },
+
+  passwordField (passwordHidden = true): void {
+    const type = passwordHidden ? 'password' : 'text'
+
+    const field = doc.querySelector('#lc-password') as HTMLInputElement
+    if (field == null) {
+      // if element not exist add it to dom
+      logseq.provideUI({
+        key: 'password-field',
+        slot: 'lc-password-placeholder',
+        template: `
+        <input id=lc-password
+              type=${type}
+              placeholder=Password
+              />
+        `
+      })
+
+      // then wait for it to appear and focus
+      waitForElm('#lc-password').then((elm) => {
+        const newField = elm as HTMLInputElement
+        newField.focus()
+      }).catch(console.error)
+    } else {
+      // only edit properties
+      field.type = type
+      field.selectionStart = field.value.length
+      field.focus()
     }
-    const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, input.value)
+  },
 
-    const tempBlock = await logseq.Editor.appendBlockInPage(page.uuid, 'Decrypting page') // workaround for https://github.com/logseq/logseq/issues/10871
+  encryptButton (): void {
+    logseq.provideUI({
+      key: 'action-button',
+      slot: 'lc-button-placeholder',
+      template: `
+      <button id="lc-button-encrypt"
+        title='Hold to encrypt page'>
+          ${icons.lock}
+      </button>
+      `
+    })
+    holdButtonListener('#lc-button-encrypt', encryptPage).catch(console.error)
+  },
 
-    if (tempBlock == null) {
-      // This will probably never occur
-      console.error('Something went wrong inserting block in page')
-      return
-    }
-
-    await logseq.Editor.insertBatchBlock(tempBlock.uuid, JSON.parse(decrpytedData), {
-      keepUUID: true,
-      before: false,
-      sibling: true
+  decryptButton (): void {
+    logseq.provideUI({
+      key: 'action-button',
+      slot: 'lc-button-placeholder',
+      template: `
+      <button id="lc-button-decrypt"
+        title='Push to decrypt page'
+        >
+          ${icons.unlock}
+      </button>
+      `
     })
 
-    await logseq.Editor.removeBlock(tempBlock.uuid)
-
-    await storage.remove(page)
-
-    await showEncryptIcon(uiData.headerSlot)
-    await logseq.UI.showMsg('Content decrypted', 'success')
-  },
-
-  async showEncryptMenu (event: TransformableEvent) {
-    await showPasswordMenu('encrypt')
-  },
-
-  async showDecryptMenu (event: TransformableEvent) {
-    await showPasswordMenu('decrypt')
+    waitForElm('#lc-button-decrypt').then(button => {
+      const handleDecrypt = (): void => {
+        decrypt().then().catch(console.error)
+        button.removeEventListener('click', handleDecrypt)
+      }
+      button.addEventListener('click', handleDecrypt)
+    }).catch(console.error)
   }
+}
+// END_RENDERS
 
-})
-/* End Callback Functions */
+function showMenu (action: 'encrypt' | 'decrypt'): void {
+  // put base structure on slot
+  render.structure(SLOT)
+  render.visibilityButton()
+  render.passwordField()
 
-/* Template render */
-async function encryptIconTemplate (): Promise<string> {
+  if (action === 'encrypt') {
+    render.encryptButton()
+  } else {
+    render.decryptButton()
+  }
+}
+
+async function encryptIconTemplate (slot: string): Promise<string> {
   const page = await logseq.Editor.getCurrentPage() as PageEntity
   const encryptData = await storage.get(page)
-  if (encryptData === undefined) {
+  if (encryptData == null) {
     return `<button title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
   } else {
     return `<button title="Open cypto menu" data-on-click=showDecryptMenu>${icons.unlock}</button>`
   }
 }
 
-export async function showEncryptIcon (slot: string): Promise<ILSPluginUser> {
-  uiData.headerSlot = slot
-  return logseq.provideUI({
-    key: 'crypto-menu',
-    slot,
-    template: await encryptIconTemplate()
-  })
-}
-
-async function encryptPage (): Promise<void> {
-  const input = parent.document.getElementById('crypto-input-password') as HTMLInputElement
-  const page = await logseq.Editor.getCurrentPage() as PageEntity
-  if (page === null) return
-
-  const hash = crypto.secureHash(input.value)
-  const pageBlocks = await logseq.Editor.getCurrentPageBlocksTree()
-  const { iv, content: encryptedContent } = crypto.encrypt(JSON.stringify(simplifyBlockTree(pageBlocks)), input.value)
-
-  await storage.save(page,
-    {
-      hash,
-      iv,
-      data: encryptedContent
-    }
-  )
-  await clearPage(page)
-  await showEncryptIcon(uiData.headerSlot)
-  await logseq.UI.showMsg('Content encrypted and saved on ' + storage.filePath(page), 'success', { timeout: 3000 })
-}
-
-async function encryptButtonListener (): Promise<void> {
-  // trigger encryption only when keeping button pressed for a second
-  const button = await waitForElm('#crypto-button-encrypt')
-  let pressTimeout: number
-
-  button.addEventListener('mousedown', e => {
-    e.stopImmediatePropagation() // prevent repetition if event is registered multiple times
-    pressTimeout = setTimeout(async () => {
-      await encryptPage()
-    }, 1000)
-  })
-
-  button.addEventListener('mouseup', e => {
-    e.stopImmediatePropagation()
-    clearTimeout(pressTimeout)
-  })
+export function showCryptoIcon (slot: string): void {
+  SLOT = slot
+  encryptIconTemplate(slot).then(cryptoIcon => {
+    logseq.provideUI({
+      key: 'crypto-menu',
+      slot,
+      template: cryptoIcon
+    })
+  }).catch(console.error)
 }

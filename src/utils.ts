@@ -18,18 +18,13 @@ export function simplifyBlockTree (blockTree: IBatchBlock[] | BlockEntity[]): IB
   return blocksContent as IBatchBlock[]
 }
 
-export async function clearPage (page: PageEntity): Promise<void> {
-  const blocks = await logseq.Editor.getPageBlocksTree(page.uuid)
-
-  for (const block of blocks) {
-    await logseq.Editor.removeBlock(block.uuid)
-  }
-}
-
 export async function waitForElm (selector: string): Promise<Element> {
   /* https://stackoverflow.com/a/61511955 */
 
   return await new Promise(resolve => {
+    const elm = parent.document.querySelector(selector)
+    if (elm !== null) return resolve(elm)
+
     const observer = new MutationObserver(mutations => {
       const elm = parent.document.querySelector(selector)
       if (elm !== null) {
@@ -43,5 +38,23 @@ export async function waitForElm (selector: string): Promise<Element> {
       childList: true,
       subtree: true
     })
+  })
+}
+
+export async function holdButtonListener (selector: string, action: CallableFunction): Promise<void> {
+  // trigger encryption only when holding button pressed
+  const button = await waitForElm(selector)
+  let pressTimeout: number
+
+  button.addEventListener('mousedown', e => {
+    e.stopImmediatePropagation() // prevent repetition if event is registered multiple times
+    pressTimeout = setTimeout(async () => {
+      await action()
+    }, 500)
+  })
+
+  button.addEventListener('mouseup', e => {
+    e.stopImmediatePropagation()
+    clearTimeout(pressTimeout)
   })
 }

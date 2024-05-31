@@ -1,6 +1,6 @@
 {
   "name": "logseq-crypto",
-  "version": "0.1",
+  "version": "0.1.2",
   "description": "Simple encryption for logseq pages",
   "scripts": {
     "dev": "parcel src/index.html --public-url ./",

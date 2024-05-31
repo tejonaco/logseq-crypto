@@ -9,14 +9,14 @@ export function filePath (page: PageEntity): string {
   return `./asssets/storages/${pkg.name}/${page.name}.json`
 }
 
-export async function get (page: PageEntity): Promise<CryptoData | undefined> {
+export async function get (page: PageEntity): Promise<CryptoData | null> {
   try {
     const data = await s.getItem(page.name + '.json').then()
     if (data !== undefined) {
       return JSON.parse(data)
     }
   } catch {
-    return undefined
+    return null
   }
 }
 

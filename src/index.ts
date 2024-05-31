@@ -9,7 +9,7 @@ async function loadCss (): Promise<void> {
 }
 
 async function main (): Promise<void> {
-  logseq.App.onPageHeadActionsSlotted(e => ui.showEncryptIcon(e.slot) as unknown)
+  logseq.App.onPageHeadActionsSlotted(e => ui.showCryptoIcon(e.slot) as unknown)
   await loadCss()
 }
 

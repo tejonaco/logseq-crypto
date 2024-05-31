@@ -1,10 +1,10 @@
 
-#crypto-password-visibility {
+#lc-visibility {
     font-size: 1.3em;
     margin-right: 4px;
 }
 
-#crypto-input-password {
+#lc-password {
     background-color: var(--ls-tertiary-background-color);
     border-color: var(--lx-accent-05);
     height: 1.5em;
@@ -16,14 +16,13 @@
     width: 200px;
 }
 
-#crypto-input-password:focus {
+#lc-password:focus {
     box-shadow: none;
 }
 
 #logseq-crypto--crypto-menu button {
     font-size: 1.3em;
     margin-left: 4px;
-    /* color: var(--ls-header-button-background); */
     color: var(--ls-title-text-color);
     padding: 2px;
     border-radius: 8px;
@@ -33,11 +32,11 @@
     background-color: var(--ls-tertiary-background-color);
 }
 
-#crypto-close-menu:hover {
+#lc-button-close:hover {
     color: var(--color-red-800);
 }
 
-#crypto-button-encrypt {
+#lc-button-encrypt {
     z-index: 1;
     overflow: hidden;
     position: relative;
@@ -60,7 +59,7 @@
     height: 0%;
     background-color: var(--lx-accent-12);
     
-    transition: background-color, 1s;
+    transition: background-color, .5s;
     z-index: -1;
 }
 &:active {
@@ -68,4 +67,4 @@
     &:before {
         height: 100%;
     }
-}
+}}

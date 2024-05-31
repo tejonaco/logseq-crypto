@@ -1,6 +1,5 @@
 import '@logseq/libs'
 import * as ui from './UI'
-import { discoverEncryptedPages } from './storage'
 
 async function loadCss (): Promise<void> {
   const cssFile = '../assets/index.css'

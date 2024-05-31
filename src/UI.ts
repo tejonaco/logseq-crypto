@@ -70,7 +70,7 @@ export const render = {
         template: `
         <input id=lc-password
               type=${type}
-              placeholder=Password
+              placeholder=PASSWORD
               />
         `
       })

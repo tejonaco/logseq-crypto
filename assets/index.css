@@ -1,3 +1,13 @@
+#logseq-crypto--crypto-menu {
+    --logseq-crypto-color: inherit;
+    --logseq-crypto-input-border-color: var(--lx-accent-05);
+    --logseq-crypto-input-bg-color: var(--ls-primary-background-color);
+    --logseq-crypto-font-family: system-ui;
+
+    color: var(--logseq-crypto-color);
+    font-family: var(--logseq-crypto-font-family);
+}
+
 
 #lc-visibility {
     font-size: 1.3em;
@@ -5,15 +15,20 @@
 }
 
 #lc-password {
-    background-color: var(--ls-tertiary-background-color);
-    border-color: var(--lx-accent-05);
-    height: 1.5em;
-    border-radius: 8px;
-    padding-left: 10px; 
-    font-family: var(--ls-font-family), sans-serif;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    background-color: var(--logseq-crypto-input-bg-color);
+    border-color: var(--logseq-crypto-input-border-color);
+    border-radius: 4px;
+    padding: 2px 8px;
     width: 200px;
+    font-weight: 300;
+}
+
+#lc-password[type="password"]:not(:placeholder-shown) {
+    font-size: 1.4em;
+}
+
+#logseq-crypto--crypto-menu svg{
+    stroke-width: 1.5;
 }
 
 #lc-password:focus {
@@ -23,7 +38,7 @@
 #logseq-crypto--crypto-menu button {
     font-size: 1.3em;
     margin-left: 4px;
-    color: var(--ls-title-text-color);
+    display: block;
     padding: 2px;
     border-radius: 8px;
 }

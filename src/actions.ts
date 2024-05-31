@@ -47,7 +47,7 @@ export async function decrypt (): Promise<void> {
 
   const hash = crypto.secureHash(passwordInput.value)
   if (saved.hash !== hash) {
-    await logseq.UI.showMsg('Password is incorrect', 'error')
+    await logseq.UI.showMsg('Password is incorrect', 'error', { timeout: 2000 })
     return
   }
   const decrpytedData = crypto.decrypt({ iv: saved.iv, content: saved.data }, passwordInput.value)

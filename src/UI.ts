@@ -117,8 +117,7 @@ export const render = {
 
     waitForElm('#lc-button-decrypt').then(button => {
       const handleDecrypt = (): void => {
-        decrypt().then().catch(console.error)
-        button.removeEventListener('click', handleDecrypt)
+        decrypt().catch(console.error)
       }
       button.addEventListener('click', handleDecrypt)
     }).catch(console.error)

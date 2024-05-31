@@ -6,7 +6,7 @@ import { holdButtonListener, waitForElm } from './utils'
 import { encryptPage, decrypt } from './actions'
 
 const doc = parent.document
-let SLOT = '' // header slot, used by close
+let SLOT = '' // header slot
 
 // CALLBACKS
 logseq.provideModel({
@@ -141,11 +141,11 @@ function showMenu (action: 'encrypt' | 'decrypt'): void {
 
 async function encryptIconTemplate (slot: string): Promise<string> {
   const page = await logseq.Editor.getCurrentPage() as PageEntity
-  const encryptData = await storage.get(page)
-  if (encryptData == null) {
-    return `<button title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>` // event is automatically passed as argument
-  } else {
+  const encryptData = await storage.isPageEncrypted(page)
+  if (encryptData) {
     return `<button title="Open cypto menu" data-on-click=showDecryptMenu>${icons.unlock}</button>`
+  } else {
+    return `<button title="Open cypto menu" data-on-click=showEncryptMenu>${icons.lock}</button>`
   }
 }
 

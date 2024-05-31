@@ -1,5 +1,6 @@
 import '@logseq/libs'
 import * as ui from './UI'
+import { discoverEncryptedPages } from './storage'
 
 async function loadCss (): Promise<void> {
   const cssFile = '../assets/index.css'
@@ -9,7 +10,7 @@ async function loadCss (): Promise<void> {
 }
 
 async function main (): Promise<void> {
-  logseq.App.onPageHeadActionsSlotted(e => ui.showCryptoIcon(e.slot) as unknown)
+  logseq.App.onPageHeadActionsSlotted(e => ui.showCryptoIcon(e.slot))
   await loadCss()
 }
 

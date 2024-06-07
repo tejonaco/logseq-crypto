@@ -2,7 +2,7 @@ import { simplifyBlockTree, waitForElm } from './utils'
 import * as crypto from './crypto'
 import * as storage from './storage'
 import { PageEntity } from '@logseq/libs/dist/LSPlugin'
-import { render } from './UI'
+import { render, showCryptoIcon } from './UI'
 
 async function clearPage (page: PageEntity): Promise<void> {
   const blocks = await logseq.Editor.getPageBlocksTree(page.uuid)
@@ -32,7 +32,7 @@ export async function encryptPage (): Promise<void> {
   await clearPage(page)
   await logseq.UI.showMsg('Content encrypted and saved on ' + storage.filePath(page), 'success', { timeout: 2000 })
   passwordInput.value = ''
-  render.decryptButton()
+  showCryptoIcon()
 }
 
 export async function decrypt (): Promise<void> {

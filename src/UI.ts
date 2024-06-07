@@ -156,7 +156,7 @@ async function encryptIconTemplate (slot: string): Promise<string> {
   }
 }
 
-export function showCryptoIcon (slot: string): void {
+export function showCryptoIcon (slot: string = SLOT): void {
   SLOT = slot
   encryptIconTemplate(slot).then(cryptoIcon => {
     logseq.provideUI({

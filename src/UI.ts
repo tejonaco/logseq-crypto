@@ -135,6 +135,14 @@ function showMenu (action: 'encrypt' | 'decrypt'): void {
     render.encryptButton()
   } else {
     render.decryptButton()
+
+    waitForElm('#lc-password').then(passwordField => {
+      (passwordField as HTMLInputElement).addEventListener('keyup', e => {
+        if (e.key === 'Enter') {
+          decrypt().catch(console.error)
+        }
+      })
+    }).catch(console.error)
   }
 }
 
